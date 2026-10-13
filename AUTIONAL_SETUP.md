@@ -79,16 +79,38 @@
 
 ## Deploying to Vercel
 
-1. Create the Vercel project for `apps/web` (repo root = monorepo, set root directory).
-2. Environment variables:
-   - `NEXT_PUBLIC_AUTIONAL_APP_ID` = `client-cXHzN7C6YN7Y`
-   - `NEXT_PUBLIC_AUTIONAL_ISSUER` = `https://api.autional.cn`
-   - `NEXT_PUBLIC_AUTIONAL_AUTHORIZE_URL` = `https://auth.autional.cn/oauth/api/v1/oauth/authorize`
-   - `BLOB_READ_WRITE_TOKEN` = from a Vercel Blob store (docs are private; images public)
-   - `OPENAI_API_KEY` = optional, enables the AI autocomplete feature
-3. Register the production callback in the OAuth client: `https://<domain>/oauth/callback`
-   (and add the origin to the client's CORS list).
-4. Check tenant trial expiry (**2026-10-20**) before relying on the deployment.
+**Current deployment (novel-demo):** private Vercel project, deployed via **Vercel CLI from the
+repo root** (monorepo upload; project Root Directory = `apps/web`):
+
+```bash
+pnpm dlx vercel --prod        # link on first run; re-deploys current working tree
+```
+
+The project is **not** Git-connected (`link=null`, verified via API 2026-10-13) — pushing to
+GitHub does not trigger a deployment.
+
+**Auto-deploy (optional, dashboard one-time setup):** connect the project to
+`github.com/autional-demo/novel` (Vercel → Project → Settings → Git), keep Root Directory =
+`apps/web` and Production Branch = `main`. On a monorepo, also set "Ignored Build Step" to skip
+when `apps/web/**`, `packages/**`, `pnpm-lock.yaml` are unchanged. Environment variables below
+are already set on the project, so the first Git build needs no extra config.
+
+### Environment variables (all already set on novel-demo)
+
+- `NEXT_PUBLIC_AUTIONAL_APP_ID` = `client-cXHzN7C6YN7Y`
+- `NEXT_PUBLIC_AUTIONAL_ISSUER` = `https://api.autional.cn`
+- `NEXT_PUBLIC_AUTIONAL_AUTHORIZE_URL` = `https://auth.autional.cn/oauth/api/v1/oauth/authorize`
+- `BLOB_READ_WRITE_TOKEN` = private docs store (Vercel Blob, private access)
+- `IMAGES_BLOB_READ_WRITE_TOKEN` = public images store (separate store; access modes are
+  mutually exclusive per token — notes D7/S4)
+- `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` = AI completions via the Autional
+  relay (gateway on `api.autional.cn`); not the upstream default OpenAI endpoint
+
+### One-time platform steps
+
+1. Register the production callback in the OAuth client: `https://<domain>/oauth/callback`
+   (and add the origin to the client's CORS list) — done via `provision/novel-update-client.mjs`.
+2. Check tenant trial expiry (**2026-10-20**) before relying on the deployment.
 
 ## Running locally
 

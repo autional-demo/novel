@@ -12,11 +12,12 @@
 | 本地跑通（pnpm dev/build） | ✅   | 2026-10-13：修 6 项基线问题（D1-D6）后 **dev 浏览器实测 + `turbo build` 4/4 双绿**（tweet 卡/KaTeX/编辑器全渲染，console 0 error） |
 | SSO 接入（skill）          | ✅¹  | 区域固定 `.cn`；**Phase 3-8 全通**：真机 SSO E2E（授权→同意→回调→会话→登出）；新缺陷 C7-C11 记录在案；Phase 6 单测 8/8 + Phase 7 文档（`AUTIONAL_SETUP.md`/`AUTIONAL_CHANGES.md`）+ Phase 8 退出门（lint/typecheck/build 全绿） |
 | 多用户改造（登录门 + 隔离）| ✅   | **单人多文档**（用户拍板，覆盖单文档建议）；浏览器 E2E（新建/切换/刷新持久化/登出/换号隔离）+ 探针 19/19 |
-| Vercel 存储接入（Blob）    | 🔄   | 代码完成：文档 = private blob + uid 命名空间（本地 fs 回退）；待 Vercel 账号 + `BLOB_READ_WRITE_TOKEN` |
-| Vercel 部署                | ⏳   | |
-| 安全审查（IDOR/XSS/JWT）   | 🔄   | 认证边界/IDOR/AI 端点探针 19/19 PASS；XSS/令牌面静查记录；见 §安全专项 |
+| Vercel 存储接入（Blob）    | ✅   | 双店落地：文档 = private 店（uid 命名空间 + 本地 fs 回退）；图片 = public 店独立令牌（`IMAGES_BLOB_READ_WRITE_TOKEN`）；Vercel env 全量配置齐（含 AI 中转三键） |
+| Vercel 部署                | ✅¹  | 生产 READY：**https://novel-demo-nine.vercel.app**（iad1，node 24.x）；部署摩擦 E1-E4 记录在案 |
+| 生产 SSO 复验              | ✅   | **5/5 全绿**（2026-10-13 晚）：SSO 登录（干净态全链）/ 文档 CRUD / **隔离校验**（bob 跨用户 404 + 对照组 200）/ **AI generate**（200 + 87 token 流式 + 落稿）/ **图片上传**（Blob 渲染 + 保存）。E5 修复线已双区上线；E6 僵尸会话链于本轮根因闭环 |
+| 安全审查（IDOR/XSS/JWT）   | ✅   | 探针 19/19 PASS + 生产隔离校验带对照复验；XSS/令牌面静查记录；见 §安全专项 |
 
-> ¹ SSO 接入的"真机 E2E"指本地 `localhost:3000` 经真实 `auth.autional.cn`/`api.autional.cn` 全链登录；Vercel 线上部署后需复验（回调重定向 URI 需在 client 登记追加）。
+> ¹ SSO 接入的"真机 E2E"指本地 `localhost:3000` 经真实 `auth.autional.cn`/`api.autional.cn` 全链登录；Vercel 线上部署 + **生产 SSO E2E 已完成**（状态见上表）。
 
 ## 环境与基线
 
@@ -24,8 +25,9 @@
 | ------------ | -- |
 | Fork         | https://github.com/autional-demo/novel |
 | 本地         | `D:\ws\ai-onboarding-lab\novel` |
+| 线上（生产） | **https://novel-demo-nine.vercel.app**（Vercel 项目 `novel-demo`；deployment `dpl_HfE8kgHbRpAVAKu5qY7icubZKmYM`） |
 | 上游基线     | `fa95098e`（main，2026-10-13 fetch） |
-| 技术栈       | Next.js 15.1.4 · React 18 · Tiptap（WYSIWYG）· AI SDK v3（`@ai-sdk/openai`）· Tailwind · pnpm workspace + turbo |
+| 技术栈       | Next.js 15.1.4 → **15.5.27**（E3 安全升版）· React 18 · Tiptap（WYSIWYG）· AI SDK v3（`@ai-sdk/openai`，走中转 `OPENAI_BASE_URL`）· Tailwind · pnpm workspace + turbo |
 | 存储依赖     | `@vercel/blob` **^2.8.1**（基线 ^0.22.1，D7 升版）· `@vercel/kv` ^1.0.1（已有，KV 已停服，本实验未用——文档存储直接落 Blob） |
 | 已知改造面   | 无认证共享文档（任何人可建/删）· 无用户模型 · AI 补全需 `OPENAI_API_KEY` |
 | 本机         | Node v24.15.0（npm 11.12.1）· 网络：GitHub 经 v2rayN 代理（10808）/ SSH |
@@ -82,16 +84,38 @@
 | D7 | `@vercel/blob` ^0.22.3 **无 `allowOverwrite`**（覆盖保存文档所必需），亦无 private access | 上游 novel 钉的旧版 API 面窄 | 0.22.3 `index.d.ts` 实证（仅 addRandomSuffix）；2.8.1 有 `allowOverwrite`/`ifMatch`/`access:'private'` | `pnpm add @vercel/blob@^2.8.1 --filter novel-next-app` 升版（`--filter web` 会报 "No projects matched"——包名是 **novel-next-app**）；private access 落地文档存储（S4） |
 | D8 | （工具链）后台 Bash 任务跑 `pnpm dev` **中途"完成"（exit 0）死亡**：登录回调 token 交换瞬间 `ERR_CONNECTION_REFUSED`（服务端已死） | Windows 下后台任务生命周期与 node 子进程脱钩（D6 同族） | dev 任务日志断流转；浏览器侧回调请求失败 | PowerShell `Start-Process -WindowStyle Hidden` 分离启动 + 日志落 `D:\tmp\novel-dev.log`（本实验全程验证稳定） |
 
+### E 组（Vercel 部署 + 平台回调域白名单）——Phase 9+（部署阶段）
+
+| # | 现象 | 根因 | 证据 | 处置 |
+| - | ---- | ---- | ---- | ---- |
+| E1 | CLI 从 `apps/web` 目录部署失败：`The specified Root Directory 'apps/web' does not exist` | monorepo 双因：CLI 上传的是**当前目录内容**，项目 `rootDirectory=apps/web` 会被二次拼接；且 `apps/web` 依赖 `workspace:^` 本地包（`novel`/`tsconfig`），单目录上传缺 workspace 根 | 部署错误原文；Vercel 项目设置 rootDirectory=apps/web | 在 **monorepo 根** link + deploy（上传全仓，rootDirectory 生效剥离 apps/web）。集成注记：turborepo 单应用部署的标准姿势 |
+| E2 | 第二次失败：`No Output Directory named 'public' found` | CLI 新建的项目 `framework=null`（未识别 Next.js），回退静态站假设 | 项目 JSON framework 字段实证 | `PATCH /v9/projects/novel-demo {"framework":"nextjs"}` → 复部署通过 |
+| E3 | 部署被安全**硬阻断**：`Vulnerable version of Next.js detected, please update immediately`（响应体含 CVE-2025-66478） | 上游 pinned `next@15.1.4` 命中 Vercel 平台级漏洞版本阻断（与 W1 同源） | 部署日志原文（平台拒绝构建） | 升 `next@15.5.27`（15.x 回移版；peerDeps 与 react 18.2 兼容实证）→ 本地 lint/typecheck/build 全绿 → 复部署 READY。**W1 就此关闭** |
+| E4 | （网络，环境非代码）本机 `*.vercel.app` **DNS 污染**：解析到 Facebook IPv6/`128.242.250.155` → curl 直连超时、探针不可达 | 本机跨境黑洞（与 D5 同族，域不同） | curl direct 超时 vs `-x http://127.0.0.1:10809` 200；系统代理已启用（浏览器自动走） | 探针/验收一律走本机代理；**产品侧零改动**（用户所在网络决定） |
+| E5 | **生产回调注册被拒**：PUT client 追加 `https://novel-demo-nine.vercel.app/oauth/callback` → `400 61050001 redirect_uri domain not allowed` | oauth-service 的 redirect URI 校验 = **平台全局域白名单**（`buildAllowedRedirectDomains`：平台根域族 + 门户覆写 + localhost，构造期解析），**非租户配置**。租户管理台**已有** redirect_uri 自助编辑 UI（admin-console oauth-clients 页）→ 租户隔离 API（handler_client.go 隔离完备）→ 被此门拒绝 | PUT 响应体原文；白名单源码 `service.go:1586-1634`（构建）/`:235`/`:337`（Create/Update 调用点）；精确匹配门已有（`hasRedirectURI`，authorize 时） | **判定：平台产品缺口（多租户自助缺失），非集成方问题**。设计结论见下。**已修复上线（2026-10-13 晚）**：修复 = 客户端 redirect_uris 自持（ADR-01 废除注册侧域白名单）+ 语法护栏 + **跨租户硬门**（`cross_tenant_gate.go`：会话租户≠客户端租户且非平台家族域 → 拦截）+ 平台家族域豁免。`service-oauth@60d193a` → dev 自动部署 + prod 提升（双区同物，oauth 二进制 sha256 `49e417ab…`）；novel 生产回调注册 **PATCH 200**（`provision/novel-update-client.mjs`）→ 生产 E2E 5/5 |
+| E6 | **僵尸会话链**（生产 E2E 撞见）：UI 显示"已登录"（用户名在）但 userinfo / auth/me / docs **全 401**（掩码 "token validation failed"），页面空白停滞 | 五连锁：① 先前登出路径触发**全舰队会话撤销**（写 `jwt:bls:{sessionID}`，TTL≈26min）② auth 域 localStorage（`autional-auth-v1`）登出后**残留** ③ 应用静默重登走 IdP refresh **200（未拒绝已撤销会话）** ④ authorize 正常发码 ⑤ token 交换铸出**绑定已撤销 session_id** 的 AT → 所有面 `IsBlacklisted` 命中 → 401 | Redis 实锤（dev 机）：`jwt:bls:01M4TTR4Z3DMZW25C96TNNQR48`=**1**（TTL 1552）；对照 `jwt:bl:{sha256(AT)}`=0（排除单 token 撤销）；JWT 解出 `sid` 与登出会话一致；8 连发确定性 401；dev monolith 日志 request_id `01M4TVD9B3P79FGHZ3HC01VWNM` | **平台侧三问（修复方向）**：① refresh 应拒绝已撤销会话（撤销需同步 refresh 路径）② authorize/铸证不应绑定已撤销 session ③ "token validation failed" 掩码吞掉真实原因，诊断性受损（建议 reason code / 审计日志富化）。**恢复**：清两域 cookies+storage 重登即愈 |
+| E7 | （契约观察，低危）token 响应 `expires_in:1800`，AT 的 JWT 实测 `exp-iat=300s` | 两值来源不同：`expires_in` 报 `token.access_token_expiry`（30m）；JWT 实际用 `jwt.short_access_expiry=5m`（**有意设计**，jwt.go access 类型优先 short；`access_expiry:30m` 兜底） | `configs/service/oauth-service.yaml:43-50`（`short_access_expiry: "5m"` 注释"access token 实际使用值"）；捕获 token 解码 `exp-iat=300`；`handler.go:170-175`（expires_in 取值路径） | 集成注记：**以 JWT exp 为准**，勿按 expires_in 缓存 token；平台可考虑对齐两值（低优先） |
+| E8 | （管理面观察，低危）OAuth client 管理 GET 响应**不含 `cors_origins`**（写入成功但读回缺失） | `toOAuthClientItem` DTO 未映射 cors_origins + `omitempty`；非写入失败（`service.UpdateClient` 已存） | `provision/novel-update-client.mjs` 验证输出（GET 缺字段；PUT→GET `redirect_uris` 在案）；10-12 会话实证 | 已按"只断言 redirect_uris"绕过；**平台侧**：管理 DTO 补齐（低优先） |
+| E9 | **登出不终结 SSO 会话 → 用户无法切换账号**（用户实测）：novel 点「退出登录」→ 再点登录 → 免密免弹窗**静默回原用户**（alice）；无痕窗口才换得掉 | 三缺口连锁：① novel 登出 = SDK `logout()`（`sdk/packages/core/src/auth-client.ts:462-477`）只清本域 token；注释明说 SSO 会话需 RP-Initiated Logout"由应用自行发起"——novel 未发起 ② auth 域会话残留 → authorize 正常发码 ③ consent 已存在（`oauth_consents` 表实锤：alice 2026-10-13 23:01:02Z 一条）→ 同意页 `oauth/authorize/page.tsx:216-233` 自动提交（设计内，业界惯例）→ 直达应用 | consent 记录：云 dev PG `autional_oauth.oauth_consents`（novel client 2 条：alice `01M4THRS…` + 另一账号 `01M4THRW…`）；代码锚点：`page.tsx:216-233`（自动同意）/ `auth-client.ts:462-477`（登出范围）；OIDC discovery 宣传 `end_session_endpoint=https://api.autional.cn/oauth/api/v1/oauth/logout` 但 auth 域 `/oauth/logout` **404**（实测）；门户侧机制 = auth 域 `/?logout=1` 入口路由（`@autional/shared` `useLogout`/`buildLogoutUrl` + `EntryRouter.tsx:88-115`，唯一登出实现 AuthService.logout + 有界 loading）——novel 未接 | **行业标准（OIDC RP-Initiated Logout 1.0）**：RP 本地先登出 → 整页跳 OP `end_session_endpoint`，带 `id_token_hint`（Recommended，含 `sid` 供 OP 校验待终止会话，防 DoS）+ `post_logout_redirect_uri`（须预注册）+ `state`；OP **SHOULD 询问用户是否也登出 OP**（确认面）。平台现状全部缺失：无确认面、无 id_token_hint、无 post_logout_redirect_uri 注册面、`/oauth/logout` 404。**修复方向（平台侧）**：auth 面实现标准 end_session_endpoint（确认面 + sid 校验 + post_logout_redirect_uri 注册）；**portal 现行 `/?logout=1` 可视为平台自定义兼容形态**。**novel 侧修法（应用半）**：登出 = 清本域（SDK `logout()` + 显式清 session cookie）→ 整页跳 auth 域 `/?logout=1&redirect=<novel 首页>` → 从根上消除"登出后静默重登"（E6 僵尸链的最简复现路径随之关闭）；动画/过渡：跨域整页跳转无法做转场，本地侧给过渡反馈（按钮 loading/淡出）即可 |
+
+**E5 设计结论（多租户视角）**：
+
+- **问题形状**：任何租户把应用部署到自有域（vercel.app / 自有域名）→ 都需 **平台侧**逐个加白名单 → "每来一个租户加 1 条"，不可规模化。租户自助 UI 已存在，堵点在服务端一个全平台常量。
+- **行业对照**：GitHub OAuth app 回调 URL 完全自助（无平台域白名单；authorize 时对已注册 URI 精确匹配即安全边界）；Google 为"应用域 + 所有权验证"。平台现行做法两者皆非（平台代管）。
+- **安全语义（关键）**：该白名单实际承担"防跨租户钓鱼"的**粗保护**——攻击者租户拿不到平台域，故无法接收他人授权码。放开前必须补硬门：**授权时校验"会话租户 = 客户端租户"**（平台门户客户端跨租户是**设计内**用法，需按客户端标记区分；现状 `handler_authorize.go` GET/POST 与 token 步均无此比对，consent 页仅展示客户端租户品牌不强制）。
+- **推荐修复方向**：**客户端 redirect_uris 自持（GitHub 模型）+ 语法护栏**（https-only〔localhost 例外〕· 禁通配符 · 禁裸 IP · 禁 userinfo/fragment · 数量/长度上限）+ 跨租户硬门。改动面 = service-oauth 单仓（控制台 UI 与租户隔离已就绪）；dev 云验证 → prod 提升。
+
 ### 非阻断告警（留档）
 
 | # | 告警 | 说明 | 处置 |
 | - | ---- | ---- | ---- |
-| W1 | **`next@15.1.4` 安全告警**：pnpm 装依赖时警告 "This version has a security vulnerability... CVE-2025-66478" | 上游 pinned 15.1.4；属**存量安全债**（可能牵动构建/运行时行为） | 记入安全专项待评（升版 vs 留档，集成期定） |
+| W1 | **`next@15.1.4` 安全告警**：pnpm 装依赖时警告 "This version has a security vulnerability... CVE-2025-66478" | 上游 pinned 15.1.4；属**存量安全债**（可能牵动构建/运行时行为） | **已处置（E3）**：升 `15.5.27`（Vercel 硬阻断迫升）；本地三闸全绿 + 生产 READY 实证；**关闭** |
 | W2 | Tiptap SSR 警告：`immediatelyRender` 应显式 false（hydration 风险提示） | SSR × Tiptap 已知提示 | 留档（上游行为） |
 | W3 | Tiptap 扩展重名：`['image','codeBlock']` duplicate extension names | 扩展注册重复 | 留档（上游行为，暂不影响） |
 | W4 | husky install deprecated / caniuse-lite 22 个月旧 | 工具链陈旧提示 | 留档 |
 | W5 | （上游基线）biome lint 1 warning：`components/tailwind/selectors/math-selector.tsx:16` 未用参数 `evt` | 上游代码；警告级不阻断（lint 退出码 0） | 留档（不改上游文件） |
 | W6 | （工具链）运行中 dev 被 `next build` 覆盖 `.next/` → dev 报 `Cannot find module './187.js'`（500） | dev/prod 共用 `.next` 产物目录 | 杀 dev → 重启 dev 自愈（本次未删 `.next` 即恢复）；规范：build 验证前先停 dev 或接受一重启 |
+| W7 | （平台观测，非实验缺陷）mycloudos 生产机 gateway `/ready`=503（组件健康明细指向 captcha3d-service 不健康） | 生产机自身观测 | 2026-10-13 排查副产品；dev/.cn 面 `/ready` 全 200 对照 | 转平台运维跟踪（与本实验无关，记录防丢） |
 
 ## 安全专项（用户点名）
 
@@ -105,7 +129,7 @@
 | S2 | 文档所有权（IDOR） | 跨用户读/改/删/列举 | pathname = `docs/<uid>/<docId>.json`，**uid 恒取自 token**（绝不来自客户端）；外部 id 自然落回调用者命名空间 → 404；列表只含本 uid 前缀 | 探针：**双向** GET/PUT/DELETE 跨用户全 **404**；两账号列表不相交；交叉尝试后双方数据完好 | ✅ PASS |
 | S3 | 富文本渲染（XSS） | 内容/标题注入 | 内容 = Tiptap **JSON**（非 HTML 存储）；标题经 React 文本节点渲染；改造面**未引入** `dangerouslySetInnerHTML`；`deriveTitle` 仅做文本抽取 | 静态核查（`app/page.tsx` / `lib/doc-store.ts`）；未做模糊测试 | ✅ 静查通过 |
 | S4 | Blob 存储访问控制 | 文档 URL 公开可读 / 跨用户列举 | 文档 = **private** blob（URL 不匿名可取）；blob 前缀含 uid 命名空间；上传图片 = public（编辑器 `<img>` 渲染必需）但**已加登录门**；上传文件名来自客户端 header（仅登录用户可利用、落在 blob 域、无应用 cookie） | 代码级（`doc-store.ts` `access:'private'`）+ 401 探针 | ✅ PASS |
-| S5 | AI 端点滥用 | 无认证计费面（`/api/generate`）| `verifyAccessToken` 置于计费逻辑之前（`/api/generate`、`/api/upload` 皆然） | 探针 401 PASS；本地无 `OPENAI_API_KEY`（生成功能待 Vercel 环境键） | ✅ PASS（门生效） |
+| S5 | AI 端点滥用 | 无认证计费面（`/api/generate`）| `verifyAccessToken` 置于计费逻辑之前（`/api/generate`、`/api/upload` 皆然） | 探针 401 PASS；**生产已验证全链**：`/api/generate` 200 + 流式 87 token + UI 采纳落稿（密钥走 Vercel env 中转三键） | ✅ PASS（门生效） |
 | S6 | 令牌持久面 | XSS 可读取 token | SDK 设计 = JS 可读 cookie + localStorage（C9 桥、`readCookie` 使 **httpOnly 不可行**）；缓解：`SameSite=Lax`、https 下 `Secure`、服务端不信任 cookie 内容（只做存在性门 + Bearer 权威校验） | 代码级（`lib/session-cookie.ts`） | ⚠️ 接受（SDK 设计使然，记录在案） |
 
 **运维注记**：租户 `novel-demo` 试用期至 **2026-10-20**，Vercel 部署前须确认续期或转正，否则线上登录全断。

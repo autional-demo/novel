@@ -48,7 +48,16 @@ You can deploy your own version of Novel to Vercel with one click:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://stey.me/novel-deploy)
 
+> The one-click button deploys **upstream** Novel (no SSO). This fork needs the Autional
+> environment variables and a pre-linked Vercel project — see `AUTIONAL_SETUP.md` →
+> "Deploying to Vercel" (CLI deploy + optional Git auto-deploy).
+
 ## Setting Up Locally
+
+> **This is the Autional demo fork** — it adds multi-user SSO and per-user document storage, and
+> its environment differs from upstream: Autional SSO keys, two Blob tokens (private docs /
+> public images), and AI relay keys. Follow `AUTIONAL_SETUP.md` → "Running locally" instead of
+> the plain-upstream notes below.
 
 To set up Novel locally, you'll need to clone the repository and set up the following environment variables:
 
