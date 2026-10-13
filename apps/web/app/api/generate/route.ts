@@ -1,9 +1,15 @@
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { Ratelimit } from "@upstash/ratelimit";
 import { kv } from "@vercel/kv";
 import { streamText } from "ai";
 import { match } from "ts-pattern";
 import { verifyAccessToken } from "@/lib/server-auth";
+
+// baseURL/模型经 env 覆盖：@ai-sdk/openai@1.x 不读 OPENAI_BASE_URL，且中转模型名与上游默认不同
+const openai = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL || undefined,
+});
+const AI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
 // IMPORTANT! Set the runtime to edge: https://vercel.com/docs/functions/edge-functions/edge-runtime
 export const runtime = "edge";
@@ -128,7 +134,7 @@ export async function POST(req: Request): Promise<Response> {
     topP: 1,
     frequencyPenalty: 0,
     presencePenalty: 0,
-    model: openai("gpt-4o-mini"),
+    model: openai(AI_MODEL),
   });
 
   return result.toDataStreamResponse();

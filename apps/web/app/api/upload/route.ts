@@ -10,8 +10,10 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    return new Response("Missing BLOB_READ_WRITE_TOKEN. Don't forget to add that to your .env file.", {
+  // 图片走 public 店独立令牌（主店 BLOB_READ_WRITE_TOKEN 为 private，店模式互斥不可混用）
+  const uploadToken = process.env.IMAGES_BLOB_READ_WRITE_TOKEN ?? process.env.BLOB_READ_WRITE_TOKEN;
+  if (!uploadToken) {
+    return new Response("Missing IMAGES_BLOB_READ_WRITE_TOKEN. Don't forget to add that to your .env file.", {
       status: 401,
     });
   }
@@ -26,6 +28,7 @@ export async function POST(req: Request) {
   const blob = await put(finalName, file, {
     contentType,
     access: "public",
+    token: uploadToken,
   });
 
   return NextResponse.json(blob);
