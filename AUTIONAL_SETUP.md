@@ -79,21 +79,19 @@
 
 ## Deploying to Vercel
 
-**Current deployment (novel-demo):** private Vercel project, deployed via **Vercel CLI from the
-repo root** (monorepo upload; project Root Directory = `apps/web`):
+**Current deployment (novel-demo):** private Vercel project, **Git-connected** to
+`github.com/autional-demo/novel` (2026-10-13, Vercel GitHub App). Push to `main` →
+automatic production deployment; other branches → preview deployments. Root Directory =
+`apps/web`, Production Branch = `main`.
+
+**CLI deploy** (from the repo root; monorepo upload) also works:
 
 ```bash
 pnpm dlx vercel --prod        # link on first run; re-deploys current working tree
 ```
 
-The project is **not** Git-connected (`link=null`, verified via API 2026-10-13) — pushing to
-GitHub does not trigger a deployment.
-
-**Auto-deploy (optional, dashboard one-time setup):** connect the project to
-`github.com/autional-demo/novel` (Vercel → Project → Settings → Git), keep Root Directory =
-`apps/web` and Production Branch = `main`. On a monorepo, also set "Ignored Build Step" to skip
-when `apps/web/**`, `packages/**`, `pnpm-lock.yaml` are unchanged. Environment variables below
-are already set on the project, so the first Git build needs no extra config.
+Optional monorepo note: set "Ignored Build Step" to skip builds when `apps/web/**`,
+`packages/**`, `pnpm-lock.yaml` are unchanged.
 
 ### Environment variables (all already set on novel-demo)
 

@@ -3,7 +3,7 @@
 > Companion to `AUTIONAL_SETUP.md`. Full problem log: `AI-ONBOARDING-NOTES.md`.
 > Date: 2026-10-13 · Branch: `feature/autional` · Upstream base: `fa95098e`
 > Deployment: Vercel project `novel-demo` → https://novel-demo-nine.vercel.app (`.cn` region;
-> CLI-deployed — auto-deploy via Git connection is documented in `AUTIONAL_SETUP.md`).
+> Git-connected 2026-10-13 — push to `main` auto-deploys to production; CLI deploy also available).
 
 ## Created
 
