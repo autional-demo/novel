@@ -14,7 +14,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^1.1.0",
     "@autional/api-identity": "^0.3.0",
-    "@autional/core": "^0.3.2",
+    "@autional/core": "^0.3.3",
     "@autional/next": "^0.3.0",
     "@autional/react": "^0.3.0",
     "@radix-ui/react-dialog": "^1.0.5",

@@ -6,6 +6,7 @@ import type { JSONContent } from "novel";
 import { useAutional } from "@autional/react";
 import TailwindAdvancedEditor from "@/components/tailwind/advanced-editor";
 import { getClientAccessToken } from "@/lib/autional-client";
+import { buildStandardLogoutUrl } from "@/lib/autional";
 import { Button } from "@/components/tailwind/ui/button";
 import Menu from "@/components/tailwind/ui/menu";
 import { FilePlus, FileText, GithubIcon, Trash2 } from "lucide-react";
@@ -51,6 +52,7 @@ export default function Page() {
   const [initialContent, setInitialContent] = useState<JSONContent | null>(null);
   const [saveStatus, setSaveStatus] = useState("已保存");
   const [displayName, setDisplayName] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const currentIdRef = useRef<string | null>(null);
   const bootstrapped = useRef(false);
@@ -178,13 +180,20 @@ export default function Page() {
   );
 
   const handleLogout = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    // id_token_hint 必须在 SDK 清空本地载荷前读取（best-effort；拿不到则省略）。
+    const logoutUrl = buildStandardLogoutUrl();
     try {
+      // 清本域：localStorage token + 会话 cookie（LOGGED_OUT 同步触发 SessionCookieSync）
       await logout();
     } catch {
-      // 即使 API 失败也强制回登录页
+      // 本地清理失败也继续：标准端点才是 OP 会话终结面
     }
-    router.replace("/login");
-  }, [logout, router]);
+    // 整页跳 OP 标准登出端点（RP-Initiated Logout）：带 hint 走静默吊销 + 回跳；
+    // 无 hint（刷新后载荷被 cookie 播种覆盖等）落服务端确认页分支，仍为标准流。
+    window.location.assign(logoutUrl);
+  }, [logout, loggingOut]);
 
   if (isLoading || !isAuthenticated) {
     return (
@@ -212,8 +221,14 @@ export default function Page() {
           <span className="hidden text-sm text-muted-foreground sm:inline">
             {displayName || user?.email || user?.username || ""}
           </span>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            退出登录
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className={loggingOut ? "opacity-60" : undefined}
+          >
+            {loggingOut ? "退出中…" : "退出登录"}
           </Button>
           <Menu />
         </div>
