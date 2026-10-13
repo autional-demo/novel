@@ -37,6 +37,7 @@
 | `apps/web/app/api/upload/route.ts`               | auth gate before Blob write · images use `IMAGES_BLOB_READ_WRITE_TOKEN` (separate public image store — access modes are mutually exclusive per token; notes D7/S4) |
 | `apps/web/app/api/generate/route.ts`             | auth gate before the (billable) generation call · AI relay via `createOpenAI({ baseURL: OPENAI_BASE_URL })` + `OPENAI_MODEL` (upstream `@ai-sdk/openai@1.x` ignores the baseURL env; relay model differs from the upstream default) |
 | `apps/web/package.json`                          | `next 15.1.4 → 15.5.27` (Vercel blocked the vulnerable version; notes E3/W1) · `@vercel/blob ^0.22.3 → ^2.8.1` (overwrite + private access; notes D7) · `test` script (node:test) |
+| `turbo.json`                                     | `typecheck` 依赖 `^topo`（全仓无对应脚本的空引用）→ `^build` —— 修复 Git 自动部署全图构建下 typecheck × headless 构建竞态（首测双部署 ERROR；notes E10） |
 | `.gitignore` · `apps/web/.gitignore`             | `.env` exception (public identifiers only) + `.data/` (local fs doc store); both gain `.env*` patterns so stray local env files can't slip in |
 | `AI-ONBOARDING-NOTES.md`                         | problem log: C1R-C13 (SDK), D1-D8 (toolchain/deps), E1-E9 (deploy + platform: redirect-URI self-service fix, zombie session, RP-initiated logout gap), S1-S6 (security), W1-W7 (warnings) |
 

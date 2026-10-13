@@ -22,7 +22,7 @@
     },
     "typecheck": {
       "dependsOn": [
-        "^topo"
+        "^build"
       ],
       "outputs": []
     },
