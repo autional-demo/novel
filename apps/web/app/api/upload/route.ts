@@ -1,9 +1,15 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
+import { verifyAccessToken } from "@/lib/server-auth";
 
 export const runtime = "edge";
 
 export async function POST(req: Request) {
+  const user = await verifyAccessToken(req.headers.get("authorization"));
+  if (!user) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return new Response("Missing BLOB_READ_WRITE_TOKEN. Don't forget to add that to your .env file.", {
       status: 401,

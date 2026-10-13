@@ -6,6 +6,7 @@ import { useCompletion } from "ai/react";
 import { ArrowUp } from "lucide-react";
 import { useEditor } from "novel";
 import { addAIHighlight } from "novel";
+import { getClientAccessToken } from "@/lib/autional-client";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import { toast } from "sonner";
@@ -29,6 +30,12 @@ export function AISelector({ onOpenChange }: AISelectorProps) {
   const { completion, complete, isLoading } = useCompletion({
     // id: "novel",
     api: "/api/generate",
+    fetch: async (input, init) => {
+      const token = await getClientAccessToken();
+      const headers = new Headers(init?.headers);
+      if (token) headers.set("authorization", `Bearer ${token}`);
+      return fetch(input, { ...init, headers });
+    },
     onResponse: (response) => {
       if (response.status === 429) {
         toast.error("You have reached your request limit for the day.");

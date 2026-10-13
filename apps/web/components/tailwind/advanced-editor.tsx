@@ -1,5 +1,4 @@
 "use client";
-import { defaultEditorContent } from "@/lib/content";
 import {
   EditorCommand,
   EditorCommandEmpty,
@@ -14,7 +13,7 @@ import {
   handleImageDrop,
   handleImagePaste,
 } from "novel";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { defaultExtensions } from "./extensions";
 import { ColorSelector } from "./selectors/color-selector";
@@ -28,13 +27,21 @@ import { uploadFn } from "./image-upload";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
 
-const hljs = require("highlight.js");
-
 const extensions = [...defaultExtensions, slashCommand];
 
-const TailwindAdvancedEditor = () => {
-  const [initialContent, setInitialContent] = useState<null | JSONContent>(null);
-  const [saveStatus, setSaveStatus] = useState("Saved");
+interface TailwindAdvancedEditorProps {
+  initialContent: JSONContent;
+  saveStatus: string;
+  onDirty?: () => void;
+  onContentChange: (json: JSONContent) => void;
+}
+
+const TailwindAdvancedEditor = ({
+  initialContent,
+  saveStatus,
+  onDirty,
+  onContentChange,
+}: TailwindAdvancedEditorProps) => {
   const [charsCount, setCharsCount] = useState();
 
   const [openNode, setOpenNode] = useState(false);
@@ -42,33 +49,10 @@ const TailwindAdvancedEditor = () => {
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
 
-  //Apply Codeblock Highlighting on the HTML from editor.getHTML()
-  const highlightCodeblocks = (content: string) => {
-    const doc = new DOMParser().parseFromString(content, "text/html");
-    doc.querySelectorAll("pre code").forEach((el) => {
-      // @ts-ignore
-      // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
-      hljs.highlightElement(el);
-    });
-    return new XMLSerializer().serializeToString(doc);
-  };
-
-  const debouncedUpdates = useDebouncedCallback(async (editor: EditorInstance) => {
-    const json = editor.getJSON();
+  const debouncedUpdates = useDebouncedCallback((editor: EditorInstance) => {
     setCharsCount(editor.storage.characterCount.words());
-    window.localStorage.setItem("html-content", highlightCodeblocks(editor.getHTML()));
-    window.localStorage.setItem("novel-content", JSON.stringify(json));
-    window.localStorage.setItem("markdown", editor.storage.markdown.getMarkdown());
-    setSaveStatus("Saved");
-  }, 500);
-
-  useEffect(() => {
-    const content = window.localStorage.getItem("novel-content");
-    if (content) setInitialContent(JSON.parse(content));
-    else setInitialContent(defaultEditorContent);
-  }, []);
-
-  if (!initialContent) return null;
+    onContentChange(editor.getJSON());
+  }, 800);
 
   return (
     <div className="relative w-full max-w-screen-lg">
@@ -96,7 +80,7 @@ const TailwindAdvancedEditor = () => {
           }}
           onUpdate={({ editor }) => {
             debouncedUpdates(editor);
-            setSaveStatus("Unsaved");
+            onDirty?.();
           }}
           slotAfter={<ImageResizer />}
         >

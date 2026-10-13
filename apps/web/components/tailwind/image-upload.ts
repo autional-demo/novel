@@ -1,12 +1,15 @@
 import { createImageUpload } from "novel";
 import { toast } from "sonner";
+import { getClientAccessToken } from "@/lib/autional-client";
 
-const onUpload = (file: File) => {
+const onUpload = async (file: File) => {
+  const token = await getClientAccessToken();
   const promise = fetch("/api/upload", {
     method: "POST",
     headers: {
       "content-type": file?.type || "application/octet-stream",
       "x-vercel-filename": file?.name || "image.png",
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
     },
     body: file,
   });

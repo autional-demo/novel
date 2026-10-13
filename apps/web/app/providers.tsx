@@ -4,7 +4,10 @@ import { type Dispatch, type ReactNode, type SetStateAction, createContext } fro
 import { ThemeProvider, useTheme } from "next-themes";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
+import { AutionalProvider } from "@autional/next";
 import useLocalStorage from "@/hooks/use-local-storage";
+import { AUTIONAL_APP_ID, AUTIONAL_ISSUER, getAutionalApiUrl } from "@/lib/autional";
+import { SessionCookieSync } from "@/components/session-cookie-sync";
 
 export const AppContext = createContext<{
   font: string;
@@ -32,9 +35,18 @@ export default function Providers({ children }: { children: ReactNode }) {
           setFont,
         }}
       >
-        <ToasterProvider />
-        {children}
-        <Analytics />
+        <AutionalProvider
+          config={{
+            appId: AUTIONAL_APP_ID,
+            issuer: AUTIONAL_ISSUER,
+            apiUrl: getAutionalApiUrl(),
+          }}
+        >
+          <SessionCookieSync />
+          <ToasterProvider />
+          {children}
+          <Analytics />
+        </AutionalProvider>
       </AppContext.Provider>
     </ThemeProvider>
   );

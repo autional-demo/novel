@@ -29,6 +29,8 @@ yarn.lock
 # local env files
 .env
 .env*.local
+# 例外：接入配置只含公开客户端标识（OAuth client_id / issuer），无任何密钥
+!apps/web/.env
 
 # vercel
 .vercel
@@ -46,6 +48,9 @@ dist/**
 packages/*/dist
 
 .turbo
+
+# local dev data store (fs fallback for docs when BLOB_READ_WRITE_TOKEN absent)
+.data/
 /test-results/
 /playwright-report/
 /playwright/.cache/
