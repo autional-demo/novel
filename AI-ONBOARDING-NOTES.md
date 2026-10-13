@@ -10,7 +10,7 @@
 | 选型 + fork                | ✅   | `autional-demo/novel`（上游 `steven-tey/novel`，Apache-2.0），2026-10-13 |
 | 本地骨架（submodule）      | ✅   | `D:\ws\ai-onboarding-lab\novel`（turborepo：`apps/web` + `packages/headless`） |
 | 本地跑通（pnpm dev/build） | ✅   | 2026-10-13：修 6 项基线问题（D1-D6）后 **dev 浏览器实测 + `turbo build` 4/4 双绿**（tweet 卡/KaTeX/编辑器全渲染，console 0 error） |
-| SSO 接入（skill）          | ✅¹  | 区域固定 `.cn`；Phase 3-5 全通：真机 SSO E2E（授权→同意→回调→会话→登出）；新缺陷 C7-C11 记录在案；Phase 6-8（测试/文档/退出门）进行中 |
+| SSO 接入（skill）          | ✅¹  | 区域固定 `.cn`；**Phase 3-8 全通**：真机 SSO E2E（授权→同意→回调→会话→登出）；新缺陷 C7-C11 记录在案；Phase 6 单测 8/8 + Phase 7 文档（`AUTIONAL_SETUP.md`/`AUTIONAL_CHANGES.md`）+ Phase 8 退出门（lint/typecheck/build 全绿） |
 | 多用户改造（登录门 + 隔离）| ✅   | **单人多文档**（用户拍板，覆盖单文档建议）；浏览器 E2E（新建/切换/刷新持久化/登出/换号隔离）+ 探针 19/19 |
 | Vercel 存储接入（Blob）    | 🔄   | 代码完成：文档 = private blob + uid 命名空间（本地 fs 回退）；待 Vercel 账号 + `BLOB_READ_WRITE_TOKEN` |
 | Vercel 部署                | ⏳   | |
@@ -65,6 +65,8 @@
 | C9 | **cookie 契约只读不写**：`@autional/next` 的 middleware / `getServerSession` / Provider 均以 `autional_token` cookie 为会话载体（`readCookie`→`seedStorage`），但**登录后没有任何 SDK 代码会写入该 cookie** → 服务端门永远视为未登录（重定向环） | 三层拆裂：`core` TokenManager 仅写 localStorage（`cookieMode` 只关闭本地持久化，**不落 cookie**）；`react` 无 cookie 代码；`next` 只读 cookie。写入桥缺失 | dist 静态核查：`core`/`react` 中 `document.cookie` **0 处**；`next` 有 `readCookie`/`getTokenFromCookies`/`seedStorage`（单向 cookie→localStorage），写入模式检索 false | 应用层桥 `components/session-cookie-sync.tsx`（订阅 provider READY/USER_CHANGED/TOKEN_CHANGED → 写 cookie；LOGGED_OUT → 清）。**SDK 需修**：官方桥接或登录后自动落 cookie |
 | C10 | OAuth `userinfo` 仅回 `{sub, client_id, scope}` —— 无 email/username，登录后头部展示名空白 | userinfo 端点极简设计；`sub` 是平台内部 ID（ULID），非可读名 | `provision/novel-probe-me.mjs`：userinfo 200 响应体实证 | 额外请求 `/bff/identity/api/v1/auth/me`（Bearer）取 `username/email` 作展示名。**SDK 建议**：`user` 对象自动补全或文档明示"userinfo 不携带资料" |
 | C11 | （观察·集成注意）**IdP 会话独立保持**：应用内登出只清本地 token；再点登录**直接跳同意页**（沿用同账号）；换号须先访问 auth 平面 `/logout` 端点（实测 `https://auth.autional.cn/logout` → 回租户登录页） | 标准 OIDC 行为（IdP SSO 会话 ≠ RP 会话）；未见 RP-initiated logout（`end_session`）面 | 浏览器实测：同意页直出无凭据步 → `/logout` 后正常出现登录页可换号 | 文档化换号/登出语义；**产品建议**：OIDC `end_session` 端点 + 文档 |
+| C12 | **闲置 5 分钟 + 刷新页面 = 会话必失效弹登录**（access token TTL=300s 实测；bob 12:18 登录 → 12:24 刷新被弹回 /login） | `core.initialize()` 启动恢复**无过期分支**：`getAccessToken()` 对过期 token 返 `null` → 用户水合整段被跳过，**且不尝试 refresh**（刷新令牌完全闲置）；此路径连 `onTokenChange` 监听都不注册 | dist 源码实证（`initialize()`：`const accessToken = getAccessToken(); if (accessToken) {...}` 无 else；`getAccessToken()` 内含 `isTokenExpired→null`）；浏览器实测复现（token `exp-iat=300s`） | 应用侧缓解：`/login` 检测会话 cookie 残迹 → **自动重走 SSO**（IdP 会话在则免点击秒回，实测全链通过）。**SDK 需修**：`initialize()` 过期分支应调用 `refreshToken()` |
+| C13 | **每次带 cookie 的页面加载，localStorage 会话被覆写**：`{accessToken, refreshToken:null, user:null, expiresAt:null}` —— refresh 令牌被抹掉（即便修复 C12 也无令牌可刷） | `@autional/next` `AutionalProvider` 首次渲染**无条件** `seedStorage(token)`（cookie → localStorage 全量覆写）；播种模板除 accessToken 外全 null，覆盖 core 持久化的富会话（refreshToken/user/expiresAt/authMode） | dist 源码实证（`if (token) { seedStorage(token); }` 无现存会话检查）；浏览器 localStorage 实测恰为播种形状（bob: `hasRefresh=false, user=null, expiresAt=null`） | 应用侧缓解同 C12（自动 SSO 免 token 刷新链）；**SDK 需修**：仅无现存会话时播种，或合并保留 refresh/user 字段 |
 
 ### D 组（依赖/配置/运行时）——基线阶段（skill 开始前）
 
@@ -88,6 +90,8 @@
 | W2 | Tiptap SSR 警告：`immediatelyRender` 应显式 false（hydration 风险提示） | SSR × Tiptap 已知提示 | 留档（上游行为） |
 | W3 | Tiptap 扩展重名：`['image','codeBlock']` duplicate extension names | 扩展注册重复 | 留档（上游行为，暂不影响） |
 | W4 | husky install deprecated / caniuse-lite 22 个月旧 | 工具链陈旧提示 | 留档 |
+| W5 | （上游基线）biome lint 1 warning：`components/tailwind/selectors/math-selector.tsx:16` 未用参数 `evt` | 上游代码；警告级不阻断（lint 退出码 0） | 留档（不改上游文件） |
+| W6 | （工具链）运行中 dev 被 `next build` 覆盖 `.next/` → dev 报 `Cannot find module './187.js'`（500） | dev/prod 共用 `.next` 产物目录 | 杀 dev → 重启 dev 自愈（本次未删 `.next` 即恢复）；规范：build 验证前先停 dev 或接受一重启 |
 
 ## 安全专项（用户点名）
 

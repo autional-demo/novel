@@ -24,7 +24,7 @@ export default function OAuthCallbackPage() {
         const callbackUrl = sessionStorage.getItem("autional_callback_url");
         sessionStorage.removeItem("autional_callback_url");
         router.replace(
-          callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+          callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
             ? callbackUrl
             : "/",
         );

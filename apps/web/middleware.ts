@@ -13,7 +13,7 @@ const NEXTJS_INTERNAL = ["/_next/", "/favicon.ico", "/api/auth/"];
 function matchesPattern(pathname: string, pattern: string): boolean {
   if (pattern.endsWith("/:path*")) {
     const base = pattern.replace("/:path*", "");
-    return pathname === base || pathname.startsWith(base + "/");
+    return pathname === base || pathname.startsWith(`${base}/`);
   }
   return pathname === pattern;
 }

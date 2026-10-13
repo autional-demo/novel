@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAutional } from "@autional/react";
 import {
@@ -21,12 +21,12 @@ export default function LoginPage() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  const handleLogin = async () => {
+  const handleLogin = useCallback(async () => {
     setError(null);
     setPending(true);
     try {
       const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-      if (callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")) {
+      if (callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")) {
         sessionStorage.setItem("autional_callback_url", callbackUrl);
       }
       await loginWithOAuth({
@@ -38,7 +38,17 @@ export default function LoginPage() {
       setPending(false);
       setError(e instanceof Error ? e.message : String(e));
     }
-  };
+  }, [loginWithOAuth]);
+
+  // 会话过期的静默续登：SDK 刷新链不可用（见 AI-ONBOARDING-NOTES C12/C13），
+  // 带会话 cookie（过期残迹）到此页时自动重走 SSO —— IdP 会话在则免点击回来。
+  const autoAttempted = useRef(false);
+  useEffect(() => {
+    if (isLoading || isAuthenticated || autoAttempted.current) return;
+    if (!document.cookie.includes("autional_token=")) return;
+    autoAttempted.current = true;
+    void handleLogin();
+  }, [isLoading, isAuthenticated, handleLogin]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-stone-50 dark:bg-stone-900">
@@ -55,6 +65,7 @@ export default function LoginPage() {
           </p>
         ) : null}
         <button
+          type="button"
           onClick={handleLogin}
           disabled={pending || isLoading}
           className="mt-6 w-full rounded-md bg-stone-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300"

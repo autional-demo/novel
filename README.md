@@ -25,6 +25,11 @@
 </p>
 <br/>
 
+> **Autional demo fork.** Adds multi-user auth (Autional SSO, `.cn` region), per-user document
+> isolation, and Vercel Blob storage on top of upstream Novel. See `AUTIONAL_SETUP.md`
+> (run/configure/deploy) and `AUTIONAL_CHANGES.md` (change inventory); integration problem log
+> in `AI-ONBOARDING-NOTES.md`.
+
 ## Docs (WIP)
 
 https://novel.sh/docs/introduction

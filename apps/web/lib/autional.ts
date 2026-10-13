@@ -8,7 +8,9 @@ export const AUTIONAL_ISSUER =
 export const AUTIONAL_CALLBACK_PATH = "/oauth/callback";
 
 // 反代形态下 SDK 无法推导登录页（默认把 authorize 指到同源），必须显式引脚到 auth 域。
+// 换区部署（如 .com）用 NEXT_PUBLIC_AUTIONAL_AUTHORIZE_URL 覆盖。
 export const AUTIONAL_AUTHORIZE_URL =
+  process.env.NEXT_PUBLIC_AUTIONAL_AUTHORIZE_URL ??
   "https://auth.autional.cn/oauth/api/v1/oauth/authorize";
 
 // 浏览器走同源反代 /bff（next.config.js rewrites → api.autional.cn）；服务端直连绝对地址。

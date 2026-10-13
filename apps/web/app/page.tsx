@@ -234,21 +234,24 @@ export default function Page() {
               docs.map((doc) => (
                 <div
                   key={doc.id}
-                  className={`group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm ${
+                  className={`group flex items-center gap-1 rounded-md text-sm ${
                     doc.id === currentId
                       ? "bg-accent text-accent-foreground"
                       : "hover:bg-accent/50"
                   }`}
-                  onClick={() => void openDoc(doc.id)}
                 >
-                  <FileText className="h-3.5 w-3.5 shrink-0 opacity-60" />
-                  <span className="truncate">{doc.title}</span>
                   <button
-                    className="ml-auto hidden shrink-0 text-muted-foreground hover:text-red-500 group-hover:block"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void removeDoc(doc.id);
-                    }}
+                    type="button"
+                    className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left"
+                    onClick={() => void openDoc(doc.id)}
+                  >
+                    <FileText className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                    <span className="truncate">{doc.title}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="mr-1.5 hidden shrink-0 text-muted-foreground hover:text-red-500 group-hover:block"
+                    onClick={() => void removeDoc(doc.id)}
                     aria-label="删除文档"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
