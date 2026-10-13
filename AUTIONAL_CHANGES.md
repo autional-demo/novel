@@ -1,7 +1,7 @@
 # AUTIONAL_CHANGES — what the onboarding changed in this fork
 
 > Companion to `AUTIONAL_SETUP.md`. Full problem log: `AI-ONBOARDING-NOTES.md`.
-> Date: 2026-10-13 · Branch: `feature/autional` · Upstream base: `fa95098e`
+> Date: 2026-10-14 · Branch: `feature/autional` · Upstream base: `fa95098e`
 > Deployment: Vercel project `novel-demo` → https://novel-demo-nine.vercel.app (`.cn` region;
 > Git-connected 2026-10-13 — push to `main` auto-deploys to production; CLI deploy also available).
 
@@ -9,7 +9,7 @@
 
 | Path                                          | Purpose                                                                                                              |
 | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `apps/web/lib/autional.ts`                    | SDK config constants (appId / issuer / authorize pin / same-origin `/bff` resolver); notes C8, adaptation #2          |
+| `apps/web/lib/autional.ts`                    | SDK config constants (appId / issuer / authorize pin / same-origin `/bff` resolver); notes C8, adaptation #2 · standard logout URL builder + id-token hint reader (notes E9)          |
 | `apps/web/lib/autional-client.ts`             | Client-side SDK singleton accessor + `getClientAccessToken()` for fetches                                             |
 | `apps/web/lib/session-cookie.ts`              | `autional_token` cookie write/clear (SameSite=Lax, Secure on https); notes C9                                         |
 | `apps/web/lib/server-auth.ts`                 | Per-request Bearer verification via `/bff/identity/api/v1/auth/me` (revocation-aware); notes C8                       |
@@ -30,13 +30,13 @@
 | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/web/next.config.js`                        | rewrites `/bff/*` + `/.well-known/*` → `api.autional.cn` (same-origin proxy) — adaptation #1                                          |
 | `apps/web/app/providers.tsx`                     | wrap app in `AutionalProvider` (config from `lib/autional.ts`) + `<SessionCookieSync />`                                             |
-| `apps/web/app/page.tsx`                          | rewrite: SSO-guarded multi-document app (doc list, create/switch/delete, `?doc=` sync, debounced save status, derived titles)        |
+| `apps/web/app/page.tsx`                          | rewrite: SSO-guarded multi-document app (doc list, create/switch/delete, `?doc=` sync, debounced save status, derived titles) · logout = RP-Initiated Logout: clear local first → full-page jump to the standard end_session endpoint with `id_token_hint` (button loading state; notes E9)        |
 | `apps/web/components/tailwind/advanced-editor.tsx` | controlled multi-doc editor: `initialContent` prop, lifted `saveStatus`, `onContentChange` debounce; localStorage autosave removed |
 | `apps/web/components/tailwind/image-upload.ts`   | send `Authorization: Bearer` on upload                                                                                               |
 | `apps/web/components/tailwind/generative/ai-selector.tsx` | custom `useCompletion` fetch injecting the Bearer header                                                                     |
 | `apps/web/app/api/upload/route.ts`               | auth gate before Blob write · images use `IMAGES_BLOB_READ_WRITE_TOKEN` (separate public image store — access modes are mutually exclusive per token; notes D7/S4) |
 | `apps/web/app/api/generate/route.ts`             | auth gate before the (billable) generation call · AI relay via `createOpenAI({ baseURL: OPENAI_BASE_URL })` + `OPENAI_MODEL` (upstream `@ai-sdk/openai@1.x` ignores the baseURL env; relay model differs from the upstream default) |
-| `apps/web/package.json`                          | `next 15.1.4 → 15.5.27` (Vercel blocked the vulnerable version; notes E3/W1) · `@vercel/blob ^0.22.3 → ^2.8.1` (overwrite + private access; notes D7) · `test` script (node:test) |
+| `apps/web/package.json`                          | `next 15.1.4 → 15.5.27` (Vercel blocked the vulnerable version; notes E3/W1) · `@vercel/blob ^0.22.3 → ^2.8.1` (overwrite + private access; notes D7) · `test` script (node:test) · `@autional/core ^0.3.2 → ^0.3.3` (id_token persistence + standard `logout()`; notes E9) |
 | `turbo.json`                                     | `typecheck` 依赖 `^topo`（全仓无对应脚本的空引用）→ `^build` —— 修复 Git 自动部署全图构建下 typecheck × headless 构建竞态（首测双部署 ERROR；notes E10） |
 | `.gitignore` · `apps/web/.gitignore`             | `.env` exception (public identifiers only) + `.data/` (local fs doc store); both gain `.env*` patterns so stray local env files can't slip in |
 | `AI-ONBOARDING-NOTES.md`                         | problem log: C1R-C13 (SDK), D1-D8 (toolchain/deps), E1-E9 (deploy + platform: redirect-URI self-service fix, zombie session, RP-initiated logout gap), S1-S6 (security), W1-W7 (warnings) |
