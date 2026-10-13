@@ -10,7 +10,7 @@
 | 选型 + fork                | ✅   | `autional-demo/novel`（上游 `steven-tey/novel`，Apache-2.0），2026-10-13 |
 | 本地骨架（submodule）      | ✅   | `D:\ws\ai-onboarding-lab\novel`（turborepo：`apps/web` + `packages/headless`） |
 | 本地跑通（pnpm dev/build） | ✅   | 2026-10-13：修 6 项基线问题（D1-D6）后 **dev 浏览器实测 + `turbo build` 4/4 双绿**（tweet 卡/KaTeX/编辑器全渲染，console 0 error） |
-| SSO 接入（skill）          | ⏳   | 区域固定 `.cn` |
+| SSO 接入（skill）          | 🔄   | 区域固定 `.cn`；Phase 3 ✅（租户+OAuth client+测试账号）；Phase 4-8 进行中 |
 | 多用户改造（登录门 + 隔离）| ⏳   | 现状：无认证共享文档 |
 | Vercel 存储接入（Blob）    | ⏳   | `@vercel/blob` 已在依赖中 |
 | Vercel 部署                | ⏳   | |
@@ -28,9 +28,31 @@
 | 已知改造面   | 无认证共享文档（任何人可建/删）· 无用户模型 · AI 补全需 `OPENAI_API_KEY` |
 | 本机         | Node v24.15.0（npm 11.12.1）· 网络：GitHub 经 v2rayN 代理（10808）/ SSH |
 
+## 接入凭证（公开信息；密码不进本文件）
+
+> 管理员密码 / 测试账号密码在 lab 单点台账 `D:\ws\ai-onboarding-lab\provision\novel-*.txt`（gitignored，永不入库）。
+
+| 项 | 值 |
+| --- | --- |
+| 租户 | `novel-demo`（.cn，plan=free，试用 7 天 → 到期 **2026-10-20**） |
+| tenantId | `01M4THMP5B6QHRFPHJH6JCRJQ7` |
+| appId（OAuth public client） | `client-cXHzN7C6YN7Y`（PKCE；redirect `http://localhost:3000/oauth/callback`；cors `http://localhost:3000`） |
+| issuer / apiUrl | `https://api.autional.cn` ／ `https://api.autional.cn/bff` |
+| 管理员 | `novel+admin@autional.net` |
+| 测试账号 | `novel-alice` / `novel-bob` / `novel-carol`（邮箱 `novel+<name>@autional.net`；hash 传输 `sha256hex(pwd\|tenantId)`） |
+
 ## 问题日志
 
 （接入开始后按序追加；分类同实验 1：A 环境 / B skill 部署 / C 租户账号 / D 依赖配置运行时 / S 安全专项）
+
+### C 组（租户账号）——Phase 3（skill 开始）
+
+| # | 现象 | 根因 | 证据 | 处置 |
+| - | ---- | ---- | ---- | ---- |
+| C1R | SDK `createTrialTenant()` 在 .cn 直连 **404**（exp1 C1 **复发**：npm 最新版仍未修） | `@autional/core` `src/auth-client.ts` 请求 `${baseUrl}/tenant/api/v1/public/tenants` —— 缺 `/bff` 前缀 + 缺 `tenant/` 一段；body 亦无 `invitation_code`（邀请码路径 SDK 不可达） | ① 线上探针：SDK 形态 404 ／ 真实形态 400（列必填 3 字段）② 今日 npm pack `@autional/core@0.3.2`（latest）源码 auth-client.ts:506 实证路径未变 | 原始 fetch 直调真实端点 `POST /bff/tenant/api/v1/tenant/public/tenants` → **201**（`provision/novel-trial-register.mjs`）。skill §3.1「SDK 提供则编程驱动」在"SDK 有但坏了"场景无分支——AI 照做的 100% 卡 404 |
+| C2R | 公开试用注册**免邀请码**可用（与 exp1 的邀请码路径不同） | 10-10 产品修复后公开注册链可用；限流按 client_ip（30 天 ≤10） | 201 建租户成功；空体探针 400 报 3 必填（无 invitation_code）；takenote exp1 台账确认为邀请码路径 | 直接注册；**试用 7 天**（exp1 C2 语义再证）——到期 2026-10-20 需注意 |
+| C3R | 管理面链全通（exp1 C5/C6 P0 **未复现**）：api 登录 200 / admin 平面（`x-entry-plane: admin`）登录 200 / check-role `super_admin`=true 且 `member`=true | 10-10 三仓修复（hash 注册 + RBAC bootstrap + initial_role）已上 prod 生效 | `provision/novel-admin-verify.mjs` **4/4 PASS**；3 测试账号注册 201 + alice hash 登录 200 | 无处置；修复效果再证（好消息） |
+| C4R | （观察·非缺陷）admin 平面 token 调 user 受众路由（check-role）→ 403 `40000503` "not accessible from this entry plane" | 平面隔离设计：user 受众路由拒 admin 平面 token；与 host（auth./user. 均通）无关 | 同管理员换 **api 平面 token** 后 auth./user. 双 host 全 200 | 集成方注意：check-role 等 user 面调用须用 api 平面 token |
 
 ### D 组（依赖/配置/运行时）——基线阶段（skill 开始前）
 

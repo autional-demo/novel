@@ -39,6 +39,18 @@ importers:
       '@ai-sdk/openai':
         specifier: ^1.1.0
         version: 1.1.0(zod@3.24.1)
+      '@autional/api-identity':
+        specifier: ^0.3.0
+        version: 0.3.0(@autional/core@0.3.2)
+      '@autional/core':
+        specifier: ^0.3.2
+        version: 0.3.2
+      '@autional/next':
+        specifier: ^0.3.0
+        version: 0.3.0(@autional/core@0.3.2)(@autional/react@0.3.0(@autional/core@0.3.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@15.1.4(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
+      '@autional/react':
+        specifier: ^0.3.0
+        version: 0.3.0(@autional/core@0.3.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@radix-ui/react-dialog':
         specifier: ^1.0.5
         version: 1.1.4(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -376,6 +388,28 @@ packages:
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
+
+  '@autional/api-identity@0.3.0':
+    resolution: {integrity: sha512-rSnAZnbwaBSNaEDDMoFEcxOqlsnnTpM/M6qUjDYJucSV8AVFjURRcNPbnomYva5fFdtwHARnfq5MI54Sd21jcw==}
+    peerDependencies:
+      '@autional/core': '>=0.1.0'
+
+  '@autional/core@0.3.2':
+    resolution: {integrity: sha512-Y1XleIeFwqFcYNRCN/jwcHcOrezcZz1tbFZIeXRT9/oL+r6nFQMqBbcfM1jBAkhxTRC4+HLQFegCBy1HU2KniQ==}
+
+  '@autional/next@0.3.0':
+    resolution: {integrity: sha512-Kx+/Yqq/c9WMS9GR4sxAj0FlVW1dApksDMLEp8+wbYDXiS/to8RhtYGIhXsbxqqgQVep1JoWajT/qlT3FY9XmA==}
+    peerDependencies:
+      '@autional/core': '>=0.1.0'
+      '@autional/react': '>=0.1.0'
+      next: '>=14.0.0'
+
+  '@autional/react@0.3.0':
+    resolution: {integrity: sha512-ZjYM7XvQrwGv+q40uspFazbncqTH7RG/QgpkZzco9ScKNoo1orYLIv4W9eAXKOemMqqXB/7OYrUD70e9bJsMIQ==}
+    peerDependencies:
+      '@autional/core': '>=0.1.0'
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -3782,6 +3816,24 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
+
+  '@autional/api-identity@0.3.0(@autional/core@0.3.2)':
+    dependencies:
+      '@autional/core': 0.3.2
+
+  '@autional/core@0.3.2': {}
+
+  '@autional/next@0.3.0(@autional/core@0.3.2)(@autional/react@0.3.0(@autional/core@0.3.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@15.1.4(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))':
+    dependencies:
+      '@autional/core': 0.3.2
+      '@autional/react': 0.3.0(@autional/core@0.3.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next: 15.1.4(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+
+  '@autional/react@0.3.0(@autional/core@0.3.2)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@autional/core': 0.3.2
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
 
   '@babel/code-frame@7.26.2':
     dependencies:
