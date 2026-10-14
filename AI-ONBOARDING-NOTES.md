@@ -38,7 +38,7 @@
 
 | 项 | 值 |
 | --- | --- |
-| 租户 | `novel-demo`（.cn，plan=free，试用 7 天 → 到期 **2026-10-20**） |
+| 租户 | `novel-demo`（.cn，plan=free；原试用 7 天 → **2026-10-14 已转永久**：`trial=false` + `trial_expires_at=NULL`） |
 | tenantId | `01M4THMP5B6QHRFPHJH6JCRJQ7` |
 | appId（OAuth public client） | `client-cXHzN7C6YN7Y`（PKCE；redirect `http://localhost:3000/oauth/callback`；cors `http://localhost:3000`） |
 | issuer / apiUrl | `https://api.autional.cn` ／ `https://api.autional.cn/bff` |
@@ -135,4 +135,4 @@
 | S5 | AI 端点滥用 | 无认证计费面（`/api/generate`）| `verifyAccessToken` 置于计费逻辑之前（`/api/generate`、`/api/upload` 皆然） | 探针 401 PASS；**生产已验证全链**：`/api/generate` 200 + 流式 87 token + UI 采纳落稿（密钥走 Vercel env 中转三键） | ✅ PASS（门生效） |
 | S6 | 令牌持久面 | XSS 可读取 token | SDK 设计 = JS 可读 cookie + localStorage（C9 桥、`readCookie` 使 **httpOnly 不可行**）；缓解：`SameSite=Lax`、https 下 `Secure`、服务端不信任 cookie 内容（只做存在性门 + Bearer 权威校验） | 代码级（`lib/session-cookie.ts`） | ⚠️ 接受（SDK 设计使然，记录在案） |
 
-**运维注记**：租户 `novel-demo` 试用期至 **2026-10-20**，Vercel 部署前须确认续期或转正，否则线上登录全断。
+**运维注记**：租户 `novel-demo` 原试用期至 2026-10-20；**已于 2026-10-14 转永久**（`trial=false` + `trial_expires_at=NULL`，与平台「试用转正式」端点同态），演示链不再受到期影响。附审计：试用到期在代码中无执行链（无 scheduler job、无读侧拦截、门户无展示），本次为数据语义校正。
