@@ -5,6 +5,7 @@
 - Date: 2026-10-13
 - Framework: Next.js 15.1.4 (App Router) + React 18 · Tiptap WYSIWYG · AI SDK v3 · Tailwind · pnpm workspace + turbo
 - Tenant: novel-demo (trial, expires **2026-10-20**)
+- Tenant slug: `novel-demo`
 - Region: **.cn** (all planes: issuer/api `api.autional.cn`, auth `auth.autional.cn`)
 - Environment: local dev (`http://localhost:3000`), Vercel-ready
 
@@ -37,13 +38,15 @@
 
 ## Portals
 
-| Portal    | Address                       | Purpose                                     |
-| --------- | ----------------------------- | ------------------------------------------- |
-| Admin     | https://admin.autional.cn     | users / roles / security policy / audit log |
-| User      | https://user.autional.cn      | change password / devices / MFA             |
-| Security  | https://security.autional.cn  | anomaly detection / login trends            |
-| Developer | https://developer.autional.cn | API docs / OAuth clients / app settings     |
-| Status    | https://status.autional.cn    | service health                              |
+| Portal    | Address                                | Purpose                                     |
+| --------- | -------------------------------------- | ------------------------------------------- |
+| Admin     | https://admin.autional.cn/novel-demo/  | users / roles / security policy / audit log |
+| User      | https://user.autional.cn/novel-demo/   | change password / devices / MFA             |
+| Security  | https://security.autional.cn/novel-demo/ | anomaly detection / login trends          |
+| Developer | https://developer.autional.cn          | API docs / OAuth clients / app settings (global) |
+| Status    | https://status.autional.cn             | service health (global)                     |
+
+> Console portals are tenant-scoped — the `/novel-demo/` slug keeps users on the tenant. A bare root drops them on the tenant picker.
 
 ## Integration adaptations (vs. the onboarding template)
 
