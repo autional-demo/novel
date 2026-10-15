@@ -4,7 +4,7 @@
 
 - Date: 2026-10-13
 - Framework: Next.js 15.1.4 (App Router) + React 18 · Tiptap WYSIWYG · AI SDK v3 · Tailwind · pnpm workspace + turbo
-- Tenant: novel-demo (trial, expires **2026-10-20**)
+- Tenant: novel-demo (permanent since 2026-10-14 — trial=false, no expiry)
 - Tenant slug: `novel-demo`
 - Region: **.cn** (all planes: issuer/api `api.autional.cn`, auth `auth.autional.cn`)
 - Environment: local dev (`http://localhost:3000`), Vercel-ready
@@ -111,7 +111,8 @@ Optional monorepo note: set "Ignored Build Step" to skip builds when `apps/web/*
 
 1. Register the production callback in the OAuth client: `https://<domain>/oauth/callback`
    (and add the origin to the client's CORS list) — done via `provision/novel-update-client.mjs`.
-2. Check tenant trial expiry (**2026-10-20**) before relying on the deployment.
+2. Tenant `novel-demo` is permanent since 2026-10-14 (`trial=false` / `trial_expires_at=NULL`) —
+   no expiry action needed.
 
 ## Running locally
 

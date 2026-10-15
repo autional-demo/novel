@@ -54,7 +54,7 @@
 | # | 现象 | 根因 | 证据 | 处置 |
 | - | ---- | ---- | ---- | ---- |
 | C1R | SDK `createTrialTenant()` 在 .cn 直连 **404**（exp1 C1 **复发**：npm 最新版仍未修） | `@autional/core` `src/auth-client.ts` 请求 `${baseUrl}/tenant/api/v1/public/tenants` —— 缺 `/bff` 前缀 + 缺 `tenant/` 一段；body 亦无 `invitation_code`（邀请码路径 SDK 不可达） | ① 线上探针：SDK 形态 404 ／ 真实形态 400（列必填 3 字段）② 今日 npm pack `@autional/core@0.3.2`（latest）源码 auth-client.ts:506 实证路径未变 | 原始 fetch 直调真实端点 `POST /bff/tenant/api/v1/tenant/public/tenants` → **201**（`provision/novel-trial-register.mjs`）。skill §3.1「SDK 提供则编程驱动」在"SDK 有但坏了"场景无分支——AI 照做的 100% 卡 404 |
-| C2R | 公开试用注册**免邀请码**可用（与 exp1 的邀请码路径不同） | 10-10 产品修复后公开注册链可用；限流按 client_ip（30 天 ≤10） | 201 建租户成功；空体探针 400 报 3 必填（无 invitation_code）；takenote exp1 台账确认为邀请码路径 | 直接注册；**试用 7 天**（exp1 C2 语义再证）——到期 2026-10-20 需注意 |
+| C2R | 公开试用注册**免邀请码**可用（与 exp1 的邀请码路径不同） | 10-10 产品修复后公开注册链可用；限流按 client_ip（30 天 ≤10） | 201 建租户成功；空体探针 400 报 3 必填（无 invitation_code）；takenote exp1 台账确认为邀请码路径 | 直接注册；**试用 7 天**（exp1 C2 语义再证）——原到期 2026-10-20；**2026-10-14 已转永久** |
 | C3R | 管理面链全通（exp1 C5/C6 P0 **未复现**）：api 登录 200 / admin 平面（`x-entry-plane: admin`）登录 200 / check-role `super_admin`=true 且 `member`=true | 10-10 三仓修复（hash 注册 + RBAC bootstrap + initial_role）已上 prod 生效 | `provision/novel-admin-verify.mjs` **4/4 PASS**；3 测试账号注册 201 + alice hash 登录 200 | 无处置；修复效果再证（好消息） |
 | C4R | （观察·非缺陷）admin 平面 token 调 user 受众路由（check-role）→ 403 `40000503` "not accessible from this entry plane" | 平面隔离设计：user 受众路由拒 admin 平面 token；与 host（auth./user. 均通）无关 | 同管理员换 **api 平面 token** 后 auth./user. 双 host 全 200 | 集成方注意：check-role 等 user 面调用须用 api 平面 token |
 
