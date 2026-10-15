@@ -78,7 +78,7 @@
    refreshes an expired access token on boot (refresh token present → refresh, then hydrate);
    `@autional/next` 0.4.0 no longer overwrites a rich localStorage session with the cookie seed.
    A reload past the 300 s access-token TTL recovers silently — no SSO replay, no forced login
-   (C6N probe 12/12). The former `/login` auto-replay workaround has been removed.
+   (C6N probe 12/12, local + production 2026-10-15). The former `/login` auto-replay workaround has been removed.
 
 ## Deploying to Vercel
 
@@ -130,3 +130,4 @@ pnpm --filter novel-next-app build
 | Multi-doc E2E (browser) | live run 2026-10-13                     | create / switch / reload-persist / logout / user isolation ✅ |
 | Auth + IDOR probes      | `provision/novel-probe-idor.mjs`        | **19/19 PASS** (cross-user 404 both ways; 401 gates)  |
 | Unit tests              | `apps/web/tests/doc-store.test.mts`     | **8/8 PASS**                                          |
+| SDK bump + C6N closed loop (2026-10-15) | `provision/novel-c6n-refresh-e2e.mjs` (local + production) | local **12/12** · production **12/12** (synthetic-expiry reload → silent refresh expIn≈296s; no login bounce; rich session kept; cookie bridge updated) |
