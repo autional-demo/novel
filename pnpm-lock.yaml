@@ -41,16 +41,16 @@ importers:
         version: 1.1.0(zod@4.1.11)
       '@autional/api-identity':
         specifier: ^0.3.0
-        version: 0.3.0(@autional/core@0.3.3)
+        version: 0.3.0(@autional/core@0.3.5)
       '@autional/core':
-        specifier: ^0.3.3
-        version: 0.3.3
+        specifier: ^0.3.5
+        version: 0.3.5
       '@autional/next':
-        specifier: ^0.3.0
-        version: 0.3.0(@autional/core@0.3.3)(@autional/react@0.3.0(@autional/core@0.3.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@15.5.27(@opentelemetry/api@1.9.0)(@types/node@20.11.24)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
+        specifier: ^0.4.0
+        version: 0.4.0(@autional/core@0.3.5)(@autional/react@0.3.1(@autional/core@0.3.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@15.5.27(@opentelemetry/api@1.9.0)(@types/node@20.11.24)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
       '@autional/react':
-        specifier: ^0.3.0
-        version: 0.3.0(@autional/core@0.3.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^0.3.1
+        version: 0.3.1(@autional/core@0.3.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@radix-ui/react-dialog':
         specifier: ^1.0.5
         version: 1.1.4(@types/react-dom@18.2.19)(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -394,20 +394,20 @@ packages:
     peerDependencies:
       '@autional/core': '>=0.1.0'
 
-  '@autional/core@0.3.3':
-    resolution: {integrity: sha512-evtja6a/4HzYGxVsXALYaYC5mWqQzx8+xVYIt60Q9wyOHbTBsJQyrNTzcYEDl1C/tKqTrg034ABimz54S+U2jg==}
+  '@autional/core@0.3.5':
+    resolution: {integrity: sha512-/V4vokl7NIKQx/UbgC2UKjKka7pdIC7swsU0bavYl3RvGHU7CoAHBsrVTSQHp1Ti2fIAr03ihnmsSIaTucL9cQ==}
 
-  '@autional/next@0.3.0':
-    resolution: {integrity: sha512-Kx+/Yqq/c9WMS9GR4sxAj0FlVW1dApksDMLEp8+wbYDXiS/to8RhtYGIhXsbxqqgQVep1JoWajT/qlT3FY9XmA==}
+  '@autional/next@0.4.0':
+    resolution: {integrity: sha512-LbfykjenraBwSGLAQbKzjmnpHhyNSEgyP5/axhda9N12PGPf0SXNtDsp4naBXpZss+9/gDA/Zp4zWgaUxh1AlQ==}
     peerDependencies:
-      '@autional/core': '>=0.1.0'
-      '@autional/react': '>=0.1.0'
+      '@autional/core': '>=0.3.5'
+      '@autional/react': '>=0.3.1'
       next: '>=14.0.0'
 
-  '@autional/react@0.3.0':
-    resolution: {integrity: sha512-ZjYM7XvQrwGv+q40uspFazbncqTH7RG/QgpkZzco9ScKNoo1orYLIv4W9eAXKOemMqqXB/7OYrUD70e9bJsMIQ==}
+  '@autional/react@0.3.1':
+    resolution: {integrity: sha512-TnjsxreM/7GjzLhqr0hDULR7kYAj34rmlQ79NO4f3b/n/4LdOqFEVNhDYhSCAEnpqjpazDyiH1qsJzmD5Ia6Wg==}
     peerDependencies:
-      '@autional/core': '>=0.1.0'
+      '@autional/core': '>=0.3.5'
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
@@ -3929,21 +3929,21 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
 
-  '@autional/api-identity@0.3.0(@autional/core@0.3.3)':
+  '@autional/api-identity@0.3.0(@autional/core@0.3.5)':
     dependencies:
-      '@autional/core': 0.3.3
+      '@autional/core': 0.3.5
 
-  '@autional/core@0.3.3': {}
+  '@autional/core@0.3.5': {}
 
-  '@autional/next@0.3.0(@autional/core@0.3.3)(@autional/react@0.3.0(@autional/core@0.3.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@15.5.27(@opentelemetry/api@1.9.0)(@types/node@20.11.24)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))':
+  '@autional/next@0.4.0(@autional/core@0.3.5)(@autional/react@0.3.1(@autional/core@0.3.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@15.5.27(@opentelemetry/api@1.9.0)(@types/node@20.11.24)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))':
     dependencies:
-      '@autional/core': 0.3.3
-      '@autional/react': 0.3.0(@autional/core@0.3.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@autional/core': 0.3.5
+      '@autional/react': 0.3.1(@autional/core@0.3.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next: 15.5.27(@opentelemetry/api@1.9.0)(@types/node@20.11.24)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
 
-  '@autional/react@0.3.0(@autional/core@0.3.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@autional/react@0.3.1(@autional/core@0.3.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      '@autional/core': 0.3.3
+      '@autional/core': 0.3.5
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 

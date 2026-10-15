@@ -74,11 +74,11 @@
    gated by login.
 8. **All app APIs are gated**: `/api/docs*`, `/api/upload`, `/api/generate` verify the Bearer
    token before any work (notes S1/S5).
-9. **Session-expiry recovery** (notes C12/C13): the SDK never refreshes on boot (expired access
-   token → session dropped, refresh token unused) and its Next.js provider overwrites
-   localStorage session data from the cookie on every load. Workaround: `/login` auto-replays
-   the SSO redirect when a session-cookie trace exists — with the IdP session alive (the common
-   case) the user returns to the app without any click. Access-token TTL is 300 s.
+9. **Session-expiry recovery** (notes C12/C13, **fixed 2026-10-15**): `@autional/core` 0.3.5
+   refreshes an expired access token on boot (refresh token present → refresh, then hydrate);
+   `@autional/next` 0.4.0 no longer overwrites a rich localStorage session with the cookie seed.
+   A reload past the 300 s access-token TTL recovers silently — no SSO replay, no forced login
+   (C6N probe 12/12). The former `/login` auto-replay workaround has been removed.
 
 ## Deploying to Vercel
 
